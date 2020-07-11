@@ -1,7 +1,7 @@
 version: '3'
 services:
-  localstack:
-    image: localstack/localstack:0.11.2
+  localstack-test:
+    image: localstack/localstack:0.11.3
     ports:
       - "4566-4599:4566-4599"
     environment:
@@ -15,12 +15,12 @@ services:
       - './.localstack0.11.2:/tmp/localstack'
   test-service:
     depends_on:
-      - localstack
+      - localstack-test
     build:
       context: ./test-service
     restart: always
     volumes:
       - './test-service:/usr/src/app/test-service:delegated'
-    # command: |
-    #   sh -c "dockerize -wait tcp://localstack:4576 -timeout 60s -wait-retry-interval 10s \
-    #   sh /usr/src/app/test-service/docker-entrypoint.sh && tail -f /dev/null"
+    command: |
+      sh -c "dockerize -wait http://localstack-test:4566/health -timeout 60s -wait-retry-interval 10s \
+      sh /usr/src/app/test-service/docker-entrypoint.sh && tail -f /dev/null"
